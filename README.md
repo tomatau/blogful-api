@@ -1,4 +1,4 @@
-# Blogful
+# Blogful API
 
 Migrations: https://www.npmjs.com/package/postgrator-cli
 
