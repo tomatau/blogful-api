@@ -79,8 +79,7 @@ const ArticleService = {
       .insert(newArticle)
       .into('blogful_article')
       .returning('*')
-      .first()
-      .then((article) => {
+      .then(([article]) => {
         article.comments = []
         return article
       })
