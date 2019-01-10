@@ -45,6 +45,14 @@ const ArticleService = {
       .groupBy('art.id')
   },
 
+  hasArticle(db, id) {
+    return db('blogful_article')
+      .select('id')
+      .where({ id })
+      .first()
+      .then(article => !!article)
+  },
+
   getById(db, id) {
     return Promise.all([
       db.from('blogful_article').select('*').where('id', id).first(),
@@ -64,7 +72,31 @@ const ArticleService = {
 
   getCommentsForArticle(db, article_id) {
     return db.from('blogful_comment') .where({ article_id })
-  }
+  },
+
+  insertArticle(db, newArticle) {
+    return db
+      .insert(newArticle)
+      .into('blogful_article')
+      .returning('*')
+      .first()
+      .then((article) => {
+        article.comments = []
+        return article
+      })
+  },
+
+  updateArticle(db, id, newArticleFields) {
+    return db('blogful_article')
+      .where({ id })
+      .update(newArticleFields)
+  },
+
+  deleteArticle(db, id) {
+    return db('blogful_article')
+      .where({ id })
+      .delete()
+  },
 }
 
 module.exports = ArticleService
