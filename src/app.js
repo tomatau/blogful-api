@@ -7,6 +7,7 @@ const knex = require('knex')
 const { NODE_ENV, DB_URL } = require('./config')
 const articlesRouter = require('./articles/router')
 const commentsRouter = require('./comments/router')
+const usersRouter = require('./users/router')
 
 const app = express()
 const db = knex({
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 
 app.use('/article', articlesRouter)
 app.use('/comment', commentsRouter)
+app.use('/user', usersRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello, world!')

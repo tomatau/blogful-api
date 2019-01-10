@@ -9,8 +9,8 @@ commentsRouter
   .route('/')
   // add a comment, requires { article_id }
   .post(jsonBodyParser, (req, res, next) => {
-    const { article_id, text } = req.body
-    const newComment = { article_id, text }
+    const { article_id, text, user_id } = req.body
+    const newComment = { article_id, text, user_id }
 
     for (const [key, value] of Object.entries(newComment))
       if (value == null)

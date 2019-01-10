@@ -2,7 +2,7 @@
 const CommentService = {
   getById(db, comment_id) {
     return db
-      .from('blogful_comment AS comm')
+      .from('blogful_comment')
       .where({
         id: comment_id
       })

@@ -16,8 +16,8 @@ articlesRouter
     })
     // add a new article without comments
     .post(jsonBodyParser, (req, res, next) => {
-      const { title, content } = req.body
-      const newArticle = { title, content }
+      const { title, content, author_id } = req.body
+      const newArticle = { title, content, author_id }
 
       for (const [key, value] of Object.entries(newArticle))
         if (value == null)
