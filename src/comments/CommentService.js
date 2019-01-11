@@ -18,7 +18,6 @@ const CommentService = {
   },
 
   insertComment(db, newComment) {
-    console.log(newComment)
     return db
       .insert(newComment)
       .into('blogful_comment')

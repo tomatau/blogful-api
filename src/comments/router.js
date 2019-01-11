@@ -7,23 +7,23 @@ const jsonBodyParser = express.json()
 /* verbs for general comments */
 commentsRouter
   .route('/')
-  // add a comment, requires { article_id }
-  .post(jsonBodyParser, (req, res, next) => {
-    const { article_id, text, user_id } = req.body
-    const newComment = { article_id, text, user_id }
+    // add a comment, requires { article_id }
+    .post(jsonBodyParser, (req, res, next) => {
+      const { article_id, text, user_id } = req.body
+      const newComment = { article_id, text, user_id }
 
-    for (const [key, value] of Object.entries(newComment))
-      if (value == null)
-        return res.status(400).json({
-          error: { message: `Missing '${key}' in request body` }
+      for (const [key, value] of Object.entries(newComment))
+        if (value == null)
+          return res.status(400).json({
+            error: { message: `Missing '${key}' in request body` }
+          })
+
+      CommentService.insertComment(req.db, newComment)
+        .then(comment => {
+          res.status(201).json(comment)
         })
-
-    CommentService.insertComment(req.db, newComment)
-      .then(comment => {
-        res.status(201).json(comment)
-      })
-      .catch(next)
-  })
+        .catch(next)
+    })
 
 /* verbs for soecufuc comment */
 commentsRouter
@@ -37,6 +37,7 @@ commentsRouter
         })
         .catch(next)
     })
+
     .get((req, res, next) => {
       CommentService.getById(req.db, req.params.comment_id)
         .then(comment => {
@@ -44,6 +45,7 @@ commentsRouter
         })
         .catch(next)
     })
+
     // update comment information, without comments
     .patch(jsonBodyParser, (req, res, next) => {
       const { text } = req.body
@@ -61,6 +63,7 @@ commentsRouter
         })
         .catch(next)
     })
+
     // remove an comment, comments should cascade
     .delete((req, res, next) => {
       CommentService.deleteComment(req.db, req.params.comment_id)

@@ -4,11 +4,16 @@ const ArticleService = {
     return Promise.all([
       db.from('blogful_article').select('*'),
       db.from('blogful_comment').select('*'),
-    ]).then(([ articles, comments ]) => {
+      db.from('blogful_tag').select('*'),
+      db.from('blogful_article_tag').select('*'),
+    ]).then(([ articles, comments, tags, articleTags ]) => {
       return articles.map(article => {
         article.comments = comments.filter(
           comment => comment.article_id === article.id
         )
+        article.tags = articleTags
+          .filter(artTag => artTag.article_id === article.id)
+          .map(artTag => tags.find(tag => tag.id === artTag.tag_id))
         return article
       })
     })
@@ -43,6 +48,31 @@ const ArticleService = {
         'comm.article_id',
       )
       .groupBy('art.id')
+  /* adding tags as part of this gets very complicated... `
+      SELECT
+        art.id,
+        art.title,
+        art.date_published,
+        art.content,
+        COALESCE(
+            JSON_AGG(
+              TO_JSON(comm.*)
+            )
+            FILTER( WHERE comm.id IS NOT NULL )
+          ,
+            '[]'
+        ) AS comments
+
+      FROM
+        blogful_article AS art
+
+      LEFT JOIN
+        blogful_comment AS comm
+      ON
+        art.id = comm.article_id
+
+      GROUP BY art.id;
+    ` */
   },
 
   hasArticle(db, id) {
@@ -51,14 +81,23 @@ const ArticleService = {
       .where({ id })
       .first()
       .then(article => !!article)
+
+    // alternative solution:
+    //
+    // return db.raw(
+    //   'SELECT exists(SELECT 1 FROM blogful_article WHERE id=?)',
+    //   [id]
+    // ).then(({ rows }) => rows[0].exists)
   },
 
   getById(db, id) {
     return Promise.all([
       db.from('blogful_article').select('*').where('id', id).first(),
       this.getCommentsForArticle(db, id),
-    ]).then(([article, comments]) => {
+      this.getTagsForArticle(db, id),
+    ]).then(([article, comments, tags]) => {
       article.comments = comments
+      article.tags = tags
       return article
     })
   },
@@ -71,7 +110,7 @@ const ArticleService = {
   },
 
   getCommentsForArticle(db, article_id) {
-    return db.from('blogful_comment') .where({ article_id })
+    return db.from('blogful_comment').where({ article_id })
   },
 
   insertArticle(db, newArticle) {
@@ -95,6 +134,43 @@ const ArticleService = {
     return db('blogful_article')
       .where({ id })
       .delete()
+  },
+
+  getTagsForArticle(db, article_id) {
+    return db('blogful_tag AS tag')
+      .select('tag.id', 'tag.text')
+      .join(
+        'blogful_article_tag AS artag',
+        'tag.id',
+        'artag.tag_id'
+      )
+      .where(
+        'artag.article_id',
+        article_id
+      )
+  },
+
+  addArticleTag(db, article_id, tag_id) {
+    return db
+      .insert({ article_id, tag_id })
+      .into('blogful_article_tag')
+      .then(() =>
+        this.getTagsForArticle(db, article_id)
+      )
+  },
+
+  deleteArticleTag(db, article_id, tag_id) {
+    return db('blogful_article_tag')
+      .where({ article_id, tag_id })
+      .delete()
+  },
+
+  hasArticleTag(db, article_id, tag_id) {
+    return db('blogful_article_tag')
+      .select('article_id', 'tag_id')
+      .where({ article_id, tag_id })
+      .first()
+      .then(articleTag => !!articleTag)
   },
 }
 

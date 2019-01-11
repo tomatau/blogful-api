@@ -48,7 +48,7 @@ const UserService = {
       .where({ email })
       .first()
       .then(user => !!user)
-  }
+  },
 }
 
 module.exports = UserService
