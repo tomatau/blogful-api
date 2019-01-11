@@ -81,13 +81,6 @@ const ArticleService = {
       .where({ id })
       .first()
       .then(article => !!article)
-
-    // alternative solution:
-    //
-    // return db.raw(
-    //   'SELECT exists(SELECT 1 FROM blogful_article WHERE id=?)',
-    //   [id]
-    // ).then(({ rows }) => rows[0].exists)
   },
 
   getById(db, id) {
