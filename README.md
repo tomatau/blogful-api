@@ -12,9 +12,9 @@ module.exports = {
   "driver": "pg",
   "host": "127.0.0.1",
   "port": 5432,
-  "database": "tomatao",
+  "database": process.env.DB_NAME,
   "username": process.env.DB_USER,
-  "password": process.env.DB_USER
+  "password": process.env.DB_PASS
 }
 ```
 
@@ -35,7 +35,8 @@ Use the files inside `./seeds` dir
 e.g. to seed the database named `blogful`:
 
 ```bash
-psql -U $DB_USER -d blogful -f ./seeds/seed.blogful_articles.sql
+source .env
+psql -U $DB_USER -d $DB_NAME -f ./seeds/seed.blogful_articles.sql
 psql -U thinkful -d $DB_NAME -f ./seeds/seed.blogful_comments.sql
 psql -U $DB_USER -d $DB_NAME -f ./seeds/seed.blogful_users.sql
 psql -U thinkful-test -d blogful-test -f ./seeds/seed.blogful_tags.sql
