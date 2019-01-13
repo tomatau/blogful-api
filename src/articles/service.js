@@ -7,7 +7,7 @@ const ArticleService = {
       knex.from('blogful_comment').select('*'),
       knex.from('blogful_tag').select('*'),
       knex.from('blogful_article_tag').select('*'),
-    ]).then(([ articles, comments, tags, articleTags ]) => {
+    ]).then(([articles, comments, tags, articleTags]) => {
       return articles.map(article => {
         article.comments = comments.filter(
           comment => comment.article_id === article.id
@@ -41,43 +41,42 @@ const ArticleService = {
             ),
             '[]'
           ) AS comments`
-        ),
+        )
       )
       .leftJoin(
         'blogful_comment AS comm',
         'art.id',
-        'comm.article_id',
+        'comm.article_id'
       )
       .groupBy('art.id')
-  /* adding tags as part of this gets very complicated... `
-      SELECT
-        art.id,
-        art.title,
-        art.date_published,
-        art.content,
-        COALESCE(
-            JSON_AGG(
-              TO_JSON(comm.*)
-            )
-            FILTER( WHERE comm.id IS NOT NULL )
-          ,
-            '[]'
-        ) AS comments
+    /* adding tags as part of this gets very complicated... `
+        SELECT
+          art.id,
+          art.title,
+          art.date_published,
+          art.content,
+          COALESCE(
+              JSON_AGG(
+                TO_JSON(comm.*)
+              )
+              FILTER( WHERE comm.id IS NOT NULL )
+            ,
+              '[]'
+          ) AS comments
 
-      FROM
-        blogful_article AS art
+        FROM
+          blogful_article AS art
 
-      LEFT JOIN
-        blogful_comment AS comm
-      ON
-        art.id = comm.article_id
+        LEFT JOIN
+          blogful_comment AS comm
+        ON
+          art.id = comm.article_id
 
-      GROUP BY art.id;
-    ` */
+        GROUP BY art.id;
+      ` */
   },
 
   hasArticle(id) {
-    console.log('===', id)
     return knex
       .select('id')
       .from('blogful_article')

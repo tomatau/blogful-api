@@ -1,11 +1,11 @@
 require('dotenv').config()
 const express = require('express')
 // const morgan = require('morgan')
-const cors = require('cors')
+// const cors = require('cors')
 const helmet = require('helmet')
 // const knex = require('knex')
 const { NODE_ENV/* , DB_URL */ } = require('./config')
-const { logger } = require('./middleware');
+const { logger, cors } = require('./middleware')
 const articlesRouter = require('./articles/router')
 const commentsRouter = require('./comments/router')
 const usersRouter = require('./users/router')
@@ -19,7 +19,8 @@ const app = express()
 
 // app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common'))
 app.use(logger);
-app.use(cors())
+// app.use(cors())
+app.use(cors)
 app.use(helmet())
 
 // app.use((req, res, next) => {
