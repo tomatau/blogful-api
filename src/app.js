@@ -25,10 +25,10 @@ app.use(helmet())
 //   next()
 // })
 
-app.use('/article', articlesRouter)
-app.use('/comment', commentsRouter)
-app.use('/user', usersRouter)
-app.use('/tag', tagsRouter)
+app.use('/articles', articlesRouter)
+app.use('/comments', commentsRouter)
+app.use('/users', usersRouter)
+app.use('/tags', tagsRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello, world!')
