@@ -1,6 +1,6 @@
 const express = require('express')
-const ArticleService = require('./ArticleService')
-const TagService = require('../tags/TagService')
+const ArticleService = require('./service')
+const TagService = require('../tags/service')
 
 const articlesRouter = express.Router()
 const jsonBodyParser = express.json()
