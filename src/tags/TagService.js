@@ -1,48 +1,49 @@
+const knex = require('../knex');
 
 const TagService = {
-  getAll(db) {
-    return db
+  getAll() {
+    return knex
       .from('blogful_tag')
       .select('*')
   },
 
-  getById(db, id) {
-    return db
+  getById(id) {
+    return knex
       .from('blogful_tag')
       .where({ id })
       .first()
   },
 
-  hasTag(db, id) {
-    return db('blogful_tag')
+  hasTag(id) {
+    return knex('blogful_tag')
       .select('id')
       .where({ id })
       .first()
       .then(tag => !!tag)
   },
 
-  insertTag(db, newTag) {
-    return db
+  insertTag(newTag) {
+    return knex
       .insert(newTag)
       .into('blogful_tag')
       .returning('*')
       .then(([tag]) => tag)
   },
 
-  updateTag(db, id, newTagFields) {
-    return db('blogful_tag')
+  updateTag(id, newTagFields) {
+    return knex('blogful_tag')
       .where({ id })
       .update(newTagFields)
   },
 
-  deleteTag(db, id) {
-    return db('blogful_tag')
+  deleteTag(id) {
+    return knex('blogful_tag')
       .where({ id })
       .delete()
   },
 
-  getArticleIdsWithTag(db, tag_id) {
-    return db('blogful_article_tag')
+  getArticleIdsWithTag(tag_id) {
+    return knex('blogful_article_tag')
       .select('*')
       .where({ tag_id })
   }

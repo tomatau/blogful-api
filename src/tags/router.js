@@ -10,7 +10,7 @@ tagsRouter
 
   // get all the tags
   .get((req, res, next) => {
-    TagService.getAll(req.db)
+    TagService.getAll()
       .then(tags => {
         res.json(tags)
       })
@@ -28,7 +28,7 @@ tagsRouter
           error: { message: `Missing '${key}' in request body` }
         })
 
-    TagService.insertTag(req.db, newTag)
+    TagService.insertTag(newTag)
       .then(tag => {
         res.status(201).json(tag)
       })
@@ -41,7 +41,7 @@ tagsRouter
   .route('/:tag_id')
 
   .all((req, res, next) => {
-    TagService.hasTag(req.db, req.params.tag_id)
+    TagService.hasTag(req.params.tag_id)
       .then(hasTag => {
         if (!hasTag)
           return res.status(404).json({
@@ -54,7 +54,7 @@ tagsRouter
 
   // get the specific tag
   .get((req, res, next) => {
-    TagService.getById(req.db, req.params.tag_id)
+    TagService.getById(req.params.tag_id)
       .then(tag => {
         res.json(tag)
       })
@@ -72,7 +72,7 @@ tagsRouter
     const newFields = {}
     if (text) newFields.text = text
 
-    TagService.updateTag(req.db, req.params.tag_id, newFields)
+    TagService.updateTag(req.params.tag_id, newFields)
       .then(() => {
         res.status(204).end()
       })
@@ -81,14 +81,14 @@ tagsRouter
 
   // delete tag if it's not being used by any articles
   .delete((req, res, next) => {
-    TagService.getArticleIdsWithTag(req.db, req.params.tag_id)
+    TagService.getArticleIdsWithTag(req.params.tag_id)
       .then(articleIdsWithTag => {
         if (articleIdsWithTag.length)
           return res.status(400).json({
             error: { message: `Tag is being used in articles and can't be removed` }
           })
 
-        return TagService.deleteTag(req.db, req.params.tag_id)
+        return TagService.deleteTag(req.params.tag_id)
           .then(() => {
             res.status(204).end()
           })

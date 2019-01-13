@@ -1,11 +1,12 @@
+const knex = require('../knex');
 
 const ArticleService = {
-  getAll(db) {
+  getAll() {
     return Promise.all([
-      db.from('blogful_article').select('*'),
-      db.from('blogful_comment').select('*'),
-      db.from('blogful_tag').select('*'),
-      db.from('blogful_article_tag').select('*'),
+      knex.from('blogful_article').select('*'),
+      knex.from('blogful_comment').select('*'),
+      knex.from('blogful_tag').select('*'),
+      knex.from('blogful_article_tag').select('*'),
     ]).then(([ articles, comments, tags, articleTags ]) => {
       return articles.map(article => {
         article.comments = comments.filter(
@@ -20,8 +21,8 @@ const ArticleService = {
   },
 
   // advanced version of above, uses single query to optimize
-  getAllAdv(db) {
-    return db
+  getAllAdv() {
+    return knex
       .from('blogful_article AS art')
       .select(
         'art.id',
@@ -29,7 +30,7 @@ const ArticleService = {
         'art.date_published',
         'art.content',
         // array of comment objects per article
-        db.raw(
+        knex.raw(
           // remove nulls from array and convert nulls to empty array
           `COALESCE(
             JSON_AGG(
@@ -75,26 +76,28 @@ const ArticleService = {
     ` */
   },
 
-  hasArticle(db, id) {
-    return db('blogful_article')
+  hasArticle(id) {
+    console.log('===', id)
+    return knex
       .select('id')
+      .from('blogful_article')
       .where({ id })
       .first()
       .then(article => !!article)
 
     // alternative solution:
     //
-    // return db.raw(
+    // return knex.raw(
     //   'SELECT exists(SELECT 1 FROM blogful_article WHERE id=?)',
     //   [id]
     // ).then(({ rows }) => rows[0].exists)
   },
 
-  getById(db, id) {
+  getById(id) {
     return Promise.all([
-      db.from('blogful_article').select('*').where('id', id).first(),
-      this.getCommentsForArticle(db, id),
-      this.getTagsForArticle(db, id),
+      knex.from('blogful_article').select('*').where('id', id).first(),
+      this.getCommentsForArticle(id),
+      this.getTagsForArticle(id),
     ]).then(([article, comments, tags]) => {
       article.comments = comments
       article.tags = tags
@@ -103,18 +106,18 @@ const ArticleService = {
   },
 
   // uses advanced version of getAll
-  getByIdAdv(db, id) {
-    return this.getAllAdv(db)
+  getByIdAdv(id) {
+    return this.getAllAdv(knex)
       .where('art.id', id)
       .first()
   },
 
-  getCommentsForArticle(db, article_id) {
-    return db.from('blogful_comment').where({ article_id })
+  getCommentsForArticle(article_id) {
+    return knex.select('*').from('blogful_comment').where({ article_id })
   },
 
-  insertArticle(db, newArticle) {
-    return db
+  insertArticle(newArticle) {
+    return knex
       .insert(newArticle)
       .into('blogful_article')
       .returning('*')
@@ -124,20 +127,20 @@ const ArticleService = {
       })
   },
 
-  updateArticle(db, id, newArticleFields) {
-    return db('blogful_article')
+  updateArticle(id, newArticleFields) {
+    return knex('blogful_article')
       .where({ id })
       .update(newArticleFields)
   },
 
-  deleteArticle(db, id) {
-    return db('blogful_article')
+  deleteArticle(id) {
+    return knex('blogful_article')
       .where({ id })
       .delete()
   },
 
-  getTagsForArticle(db, article_id) {
-    return db('blogful_tag AS tag')
+  getTagsForArticle(article_id) {
+    return knex('blogful_tag AS tag')
       .select('tag.id', 'tag.text')
       .join(
         'blogful_article_tag AS artag',
@@ -150,23 +153,23 @@ const ArticleService = {
       )
   },
 
-  addArticleTag(db, article_id, tag_id) {
-    return db
+  addArticleTag(article_id, tag_id) {
+    return knex
       .insert({ article_id, tag_id })
       .into('blogful_article_tag')
       .then(() =>
-        this.getTagsForArticle(db, article_id)
+        this.getTagsForArticle(knex, article_id)
       )
   },
 
-  deleteArticleTag(db, article_id, tag_id) {
-    return db('blogful_article_tag')
+  deleteArticleTag(article_id, tag_id) {
+    return knex('blogful_article_tag')
       .where({ article_id, tag_id })
       .delete()
   },
 
-  hasArticleTag(db, article_id, tag_id) {
-    return db('blogful_article_tag')
+  hasArticleTag(article_id, tag_id) {
+    return knex('blogful_article_tag')
       .select('article_id', 'tag_id')
       .where({ article_id, tag_id })
       .first()

@@ -1,13 +1,15 @@
 
+const knex = require('../knex');
+
 const UserService = {
-  getAll(db) {
-    return db
+  getAll() {
+    return knex
       .from('blogful_user')
       .select('*')
   },
 
-  getById(db, user_id) {
-    return db
+  getById(user_id) {
+    return knex
       .from('blogful_user')
       .where({
         id: user_id
@@ -15,36 +17,36 @@ const UserService = {
       .first()
   },
 
-  hasUser(db, id) {
-    return db('blogful_user')
+  hasUser(id) {
+    return knex('blogful_user')
       .select('id')
       .where({ id })
       .first()
       .then(user => !!user)
   },
 
-  insertUser(db, newUser) {
-    return db
+  insertUser(newUser) {
+    return knex
       .insert(newUser)
       .into('blogful_user')
       .returning('*')
       .then(([user]) => user)
   },
 
-  updateUser(db, id, newUserFields) {
-    return db('blogful_user')
+  updateUser(id, newUserFields) {
+    return knex('blogful_user')
       .where({ id })
       .update(newUserFields)
   },
 
-  deleteUser(db, id) {
-    return db('blogful_user')
+  deleteUser(id) {
+    return knex('blogful_user')
       .where({ id })
       .delete()
   },
 
-  hasUserWithEmail(db, email) {
-    return db('blogful_user')
+  hasUserWithEmail(email) {
+    return knex('blogful_user')
       .where({ email })
       .first()
       .then(user => !!user)
