@@ -10,7 +10,7 @@ const checkArticleExists = (req, res, next) => {
     .then(hasArticle => {
       if (!hasArticle)
         return res.status(404).json({
-          error: { message: `Article doesn't exist` }
+          error: { message: "Article doesn't exist" }
         })
       next()
     })
@@ -63,7 +63,7 @@ articlesRouter
     const { title, content } = req.body
     if (title == null && content == null)
       return res.status(400).json({
-        error: { message: `Request body must content either 'title' or 'content'` }
+        error: { message: "Request body must content either 'title' or 'content'" }
       })
     const newFields = {}
     if (title) newFields.title = title
@@ -117,27 +117,27 @@ articlesRouter
 
     if (tag_id == null)
       return res.status(400).json({
-        error: { message: `Missing 'tag_id' in request body` }
+        error: { message: "Missing 'tag_id' in request body" }
       })
 
     ArticleService.hasArticleTag(
       req.params.article_id,
-      tag_id,
+      tag_id
     ).then(hasArticleTag => {
       if (hasArticleTag)
         return res.status(400).json({
-          error: { message: `Article already has tag` }
+          error: { message: 'Article already has tag' }
         })
 
       return ArticleService.addArticleTag(
         req.params.article_id,
-        tag_id,
+        tag_id
       )
         .then(tagsForArticle => {
           res.status(201).json(tagsForArticle)
         })
     })
-    .catch(next)
+      .catch(next)
   })
 
 
@@ -147,12 +147,12 @@ articlesRouter
   .all((req, res, next) => {
     ArticleService.hasArticleTag(
       req.params.article_id,
-      req.params.tag_id,
+      req.params.tag_id
     )
       .then(hasArticleTag => {
         if (!hasArticleTag)
           return res.status(404).json({
-            error: { message: `Article doesn't have tag!` }
+            error: { message: "Article doesn't have tag!" }
           })
         next()
       })
@@ -163,7 +163,7 @@ articlesRouter
   .delete((req, res, next) => {
     ArticleService.deleteArticleTag(
       req.params.article_id,
-      req.params.tag_id,
+      req.params.tag_id
     )
       .then(() => {
         res.status(204).end()

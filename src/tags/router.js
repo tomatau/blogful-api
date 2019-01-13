@@ -45,7 +45,7 @@ tagsRouter
       .then(hasTag => {
         if (!hasTag)
           return res.status(404).json({
-            error: { message: `Tag doesn't exist` }
+            error: { message: "Tag doesn't exist" }
           })
         next()
       })
@@ -66,7 +66,7 @@ tagsRouter
     const { text } = req.body
     if (text == null)
       return res.status(400).json({
-        error: { message: `Request body must contain'text'` }
+        error: { message: "Request body must contain'text'" }
       })
 
     const newFields = {}
@@ -85,7 +85,7 @@ tagsRouter
       .then(articleIdsWithTag => {
         if (articleIdsWithTag.length)
           return res.status(400).json({
-            error: { message: `Tag is being used in articles and can't be removed` }
+            error: { message: "Tag is being used in articles and can't be removed" }
           })
 
         return TagService.deleteTag(req.params.tag_id)
