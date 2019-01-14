@@ -13,6 +13,7 @@ const checkArticleExists = (req, res, next) => {
           error: { message: `Article doesn't exist` }
         })
       next()
+      return null
     })
     .catch(next)
 }

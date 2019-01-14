@@ -48,6 +48,7 @@ tagsRouter
             error: { message: `Tag doesn't exist` }
           })
         next()
+        return null
       })
       .catch(next)
   })

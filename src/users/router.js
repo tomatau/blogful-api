@@ -52,6 +52,7 @@ usersRouter
               error: { message: `User doesn't exist` }
             })
           next()
+          return null
         })
         .catch(next)
     })
