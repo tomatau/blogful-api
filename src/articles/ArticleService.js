@@ -28,51 +28,52 @@ const ArticleService = {
         'art.title',
         'art.date_published',
         'art.content',
-        // array of comment objects per article
         db.raw(
-          // remove nulls from array and convert nulls to empty array
           `COALESCE(
-            JSON_AGG(
-              TO_JSON(comm.*)
-            )
-            FILTER(
-              WHERE comm.id IS NOT NULL
-            ),
+            json_agg(DISTINCT tag) filter(WHERE tag.id IS NOT NULL),
+            '[]'
+          ) AS tags`
+        ),
+        db.raw(
+          `COALESCE(
+            json_agg(DISTINCT comm) filter(WHERE comm.id IS NOT NULL),
             '[]'
           ) AS comments`
         ),
       )
-      .leftJoin(
-        'blogful_comment AS comm',
+      .leftJoin('blogful_article_tag AS ba',
+        'art.id',
+        'ba.article_id',
+      )
+      .leftJoin('blogful_tag AS tag',
+        'ba.tag_id',
+        'tag.id',
+      )
+      .leftJoin('blogful_comment AS comm',
         'art.id',
         'comm.article_id',
       )
       .groupBy('art.id')
-  /* adding tags as part of this gets very complicated... `
-      SELECT
-        art.id,
-        art.title,
-        art.date_published,
-        art.content,
-        COALESCE(
-            JSON_AGG(
-              TO_JSON(comm.*)
-            )
-            FILTER( WHERE comm.id IS NOT NULL )
-          ,
-            '[]'
-        ) AS comments
-
-      FROM
-        blogful_article AS art
-
-      LEFT JOIN
-        blogful_comment AS comm
-      ON
-        art.id = comm.article_id
-
-      GROUP BY art.id;
-    ` */
+    /*
+    SELECT
+      art.id,
+      art.title,
+      art.date_published,
+      art.content,
+      COALESCE(
+        json_agg(DISTINCT tag) filter(WHERE tag.id IS NOT NULL),
+        '[]'
+      ) AS tags,
+      COALESCE(
+        json_agg(DISTINCT comm) filter(WHERE comm.id IS NOT NULL),
+        '[]'
+      ) AS comments
+    FROM blogful_article AS art
+    LEFT JOIN blogful_article_tag AS ba ON art.id = ba.article_id
+    LEFT JOIN blogful_tag AS tag ON ba.tag_id = tag.id
+    LEFT JOIN blogful_comment AS comm ON art.id = comm.article_id
+    GROUP BY art.id;
+    */
   },
 
   hasArticle(db, id) {

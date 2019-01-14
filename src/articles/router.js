@@ -38,7 +38,7 @@ articlesRouter
   .all(checkArticleExists)
 
   .get((req, res, next) => {
-    ArticleService.getById(req.db, req.params.article_id)
+    ArticleService.getByIdAdv(req.db, req.params.article_id)
       .then(articles => {
         res.json(articles)
       })
