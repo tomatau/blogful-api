@@ -8,7 +8,7 @@ const jsonBodyParser = express.json()
 articlesRouter
   .route('/')
   .get((req, res, next) => {
-    ArticleService.getAll(req.db)
+    ArticleService.getAll(req.app.get('db'))
       .then(articles => {
         res.json(articles)
       })
@@ -26,7 +26,10 @@ articlesRouter
           error: { message: `Missing '${key}' in request body` }
         })
 
-    ArticleService.insertArticle(req.db, newArticle)
+    ArticleService.insertArticle(
+      req.app.get('db'),
+      newArticle
+    )
       .then(article => {
         res.status(201).json(article)
       })
@@ -38,7 +41,10 @@ articlesRouter
   .all(checkArticleExists)
 
   .get((req, res, next) => {
-    ArticleService.getByIdAdv(req.db, req.params.article_id)
+    ArticleService.getByIdAdv(
+      req.app.get('db'),
+      req.params.article_id
+    )
       .then(articles => {
         res.json(articles)
       })
@@ -55,7 +61,10 @@ articlesRouter
     const newFields = {}
     if (title) newFields.title = title
     if (content) newFields.content = content
-    ArticleService.updateArticle(req.db, req.params.article_id, newFields)
+    ArticleService.updateArticle(
+      req.app.get('db'),
+      req.params.article_id, newFields
+    )
       .then(() => {
         res.status(204).end()
       })
@@ -64,7 +73,10 @@ articlesRouter
 
   // remove an article, comments should cascade
   .delete((req, res, next) => {
-    ArticleService.deleteArticle(req.db, req.params.article_id)
+    ArticleService.deleteArticle(
+      req.app.get('db'),
+      req.params.article_id
+    )
       .then(() => {
         res.status(204).end()
       })
@@ -78,7 +90,7 @@ articlesRouter
 
   .get((req, res, next) => {
     ArticleService.getCommentsForArticle(
-      req.db,
+      req.app.get('db'),
       req.params.article_id
     )
       .then(comments => {
@@ -92,7 +104,10 @@ articlesRouter
   .all(checkArticleExists)
 
   .get((req, res, next) => {
-    ArticleService.getTagsForArticle(req.db, req.params.article_id)
+    ArticleService.getTagsForArticle(
+      req.app.get('db'),
+      req.params.article_id
+    )
       .then(tags => {
         res.json(tags)
       })
@@ -109,25 +124,26 @@ articlesRouter
       })
 
     ArticleService.hasArticleTag(
-      req.db,
+      req.app.get('db'),
       req.params.article_id,
       tag_id,
-    ).then(hasArticleTag => {
-      if (hasArticleTag)
-        return res.status(400).json({
-          error: { message: `Article already has tag` }
-        })
+    )
+      .then(hasArticleTag => {
+        if (hasArticleTag)
+          return res.status(400).json({
+            error: { message: `Article already has tag` }
+          })
 
-      return ArticleService.addArticleTag(
-        req.db,
-        req.params.article_id,
-        tag_id,
-      )
-        .then(tagsForArticle => {
-          res.status(201).json(tagsForArticle)
-        })
-    })
-    .catch(next)
+        return ArticleService.addArticleTag(
+          req.app.get('db'),
+          req.params.article_id,
+          tag_id,
+        )
+          .then(tagsForArticle => {
+            res.status(201).json(tagsForArticle)
+          })
+      })
+      .catch(next)
   })
 
 
@@ -136,7 +152,7 @@ articlesRouter
   .all(checkArticleExists)
   .all((req, res, next) => {
     ArticleService.hasArticleTag(
-      req.db,
+      req.app.get('db'),
       req.params.article_id,
       req.params.tag_id,
     )
@@ -153,7 +169,7 @@ articlesRouter
   // remove tag from article
   .delete((req, res, next) => {
     ArticleService.deleteArticleTag(
-      req.db,
+      req.app.get('db'),
       req.params.article_id,
       req.params.tag_id,
     )
@@ -166,7 +182,8 @@ articlesRouter
 async function checkArticleExists(req, res, next) {
   try {
     const hasArticle = await ArticleService.hasArticle(
-      req.db, req.params.article_id
+      req.app.get('db'),
+      req.params.article_id
     )
 
     if (!hasArticle)

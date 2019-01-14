@@ -18,7 +18,10 @@ commentsRouter
             error: { message: `Missing '${key}' in request body` }
           })
 
-      CommentService.insertComment(req.db, newComment)
+      CommentService.insertComment(
+        req.app.get('db'),
+        newComment
+      )
         .then(comment => {
           res.status(201).json(comment)
         })
@@ -29,7 +32,10 @@ commentsRouter
 commentsRouter
   .route('/:comment_id')
     .all((req, res, next) => {
-      CommentService.hasComment(req.db, req.params.comment_id)
+      CommentService.hasComment(
+        req.app.get('db'),
+        req.params.comment_id
+      )
         .then(hasComment => {
           if (!hasComment)
             return res.status(404).json({ error: { message: `Comment doesn't exist` } })
@@ -39,7 +45,10 @@ commentsRouter
     })
 
     .get((req, res, next) => {
-      CommentService.getById(req.db, req.params.comment_id)
+      CommentService.getById(
+        req.app.get('db'),
+        req.params.comment_id
+      )
         .then(comment => {
           res.json(comment)
         })
@@ -57,7 +66,10 @@ commentsRouter
       const newFields = {}
       if (text) newFields.text = text
 
-      CommentService.updateComment(req.db, req.params.comment_id, newFields)
+      CommentService.updateComment(
+        req.app.get('db'),
+        req.params.comment_id, newFields
+      )
         .then(() => {
           res.status(204).end()
         })
@@ -66,7 +78,10 @@ commentsRouter
 
     // remove an comment, comments should cascade
     .delete((req, res, next) => {
-      CommentService.deleteComment(req.db, req.params.comment_id)
+      CommentService.deleteComment(
+        req.app.get('db'),
+        req.params.comment_id
+      )
         .then(() => {
           res.status(204).end()
         })
