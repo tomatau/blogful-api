@@ -5,19 +5,6 @@ const TagService = require('../tags/TagService')
 const articlesRouter = express.Router()
 const jsonBodyParser = express.json()
 
-const checkArticleExists = (req, res, next) => {
-  ArticleService.hasArticle(req.db, req.params.article_id)
-    .then(hasArticle => {
-      if (!hasArticle)
-        return res.status(404).json({
-          error: { message: `Article doesn't exist` }
-        })
-      next()
-      return null
-    })
-    .catch(next)
-}
-
 /* verbs for generic articles */
 articlesRouter
   .route('/')
@@ -176,5 +163,22 @@ articlesRouter
       })
       .catch(next)
   })
+
+async function checkArticleExists(req, res, next) {
+  try {
+    const hasArticle = await ArticleService.hasArticle(
+      req.db, req.params.article_id
+    )
+
+    if (!hasArticle)
+      return res.status(404).json({
+        error: { message: `Article doesn't exist` }
+      })
+
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
 
 module.exports = articlesRouter
