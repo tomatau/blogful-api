@@ -86,8 +86,8 @@ const ArticleService = {
   getById(db, id) {
     return Promise.all([
       db.from('blogful_article').select('*').where('id', id).first(),
-      this.getCommentsForArticle(db, id),
-      this.getTagsForArticle(db, id),
+      ArticleService.getCommentsForArticle(db, id),
+      ArticleService.getTagsForArticle(db, id),
     ]).then(([article, comments, tags]) => {
       article.comments = comments
       article.tags = tags
@@ -97,7 +97,7 @@ const ArticleService = {
 
   // uses advanced version of getAll
   getByIdAdv(db, id) {
-    return this.getAllAdv(db)
+    return ArticleService.getAllAdv(db)
       .where('art.id', id)
       .first()
   },
@@ -148,7 +148,7 @@ const ArticleService = {
       .insert({ article_id, tag_id })
       .into('blogful_article_tag')
       .then(() =>
-        this.getTagsForArticle(db, article_id)
+        ArticleService.getTagsForArticle(db, article_id)
       )
   },
 
