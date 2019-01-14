@@ -8,7 +8,7 @@ const jsonBodyParser = express.json()
 usersRouter
   .route('/')
   .get((req, res, next) => {
-    UserService.getAll(req.db)
+    UserService.getAll(req.app.get('db'))
       .then(users => {
         res.json(users)
       })
@@ -26,14 +26,20 @@ usersRouter
           error: { message: `Missing '${field}' in request body` }
         })
 
-    UserService.hasUserWithEmail(req.db, newUser.email)
+    UserService.hasUserWithEmail(
+      req.app.get('db'),
+      newUser.email
+    )
       .then(hasUserWithEmail => {
         if (hasUserWithEmail)
           return res.status(400).json({
             error: { message: `Email already taken` }
           })
 
-        return UserService.insertUser(req.db, newUser)
+        return UserService.insertUser(
+          req.app.get('db'),
+          newUser
+        )
           .then(user => {
             res.status(201).json(user)
           })
@@ -45,7 +51,10 @@ usersRouter
 usersRouter
   .route('/:user_id')
     .all((req, res, next) => {
-      UserService.hasUser(req.db, req.params.user_id)
+      UserService.hasUser(
+        req.app.get('db'),
+        req.params.user_id
+      )
         .then(hasUser => {
           if (!hasUser)
             return res.status(404).json({
@@ -57,7 +66,10 @@ usersRouter
         .catch(next)
     })
     .get((req, res, next) => {
-      UserService.getById(req.db, req.params.user_id)
+      UserService.getById(
+        req.app.get('db'),
+        req.params.user_id
+      )
         .then(user => {
           res.json(user)
         })
@@ -86,7 +98,10 @@ usersRouter
       if (email) newFields.email = email
       if (screen_name) newFields.screen_name = screen_name
 
-      UserService.hasUserWithEmail(req.db, newFields.email)
+      UserService.hasUserWithEmail(
+        req.app.get('db'),
+        newFields.email
+      )
         .then(hasUserWithEmail => {
           if (hasUserWithEmail)
             return res.status(400).json({
@@ -94,7 +109,8 @@ usersRouter
             })
 
           return UserService.updateUser(
-            req.db, req.params.user_id, newFields
+            req.app.get('db'),
+            req.params.user_id, newFields
           )
             .then(() => {
               res.status(204).end()
@@ -104,7 +120,10 @@ usersRouter
     })
     // remove an user, users should cascade
     .delete((req, res, next) => {
-      UserService.deleteUser(req.db, req.params.user_id)
+      UserService.deleteUser(
+        req.app.get('db'),
+        req.params.user_id
+      )
         .then(() => {
           res.status(204).end()
         })

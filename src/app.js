@@ -3,27 +3,17 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
-const knex = require('knex')
-const { NODE_ENV, DB_URL } = require('./config')
+const { NODE_ENV } = require('./config')
 const articlesRouter = require('./articles/router')
 const commentsRouter = require('./comments/router')
 const usersRouter = require('./users/router')
 const tagsRouter = require('./tags/router')
 
 const app = express()
-const db = knex({
-  client: 'pg',
-  connection: DB_URL,
-})
 
 app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common'))
 app.use(cors())
 app.use(helmet())
-
-app.use((req, res, next) => {
-  req.db = db
-  next()
-})
 
 app.use('/article', articlesRouter)
 app.use('/comment', commentsRouter)
