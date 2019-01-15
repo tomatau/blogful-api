@@ -1,5 +1,5 @@
 const express = require('express')
-const TagService = require('./TagService')
+const TagService = require('./tag-service')
 
 const tagsRouter = express.Router()
 const jsonBodyParser = express.json()

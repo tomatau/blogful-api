@@ -1,5 +1,5 @@
 const express = require('express')
-const ArticleService = require('./ArticleService')
+const ArticleService = require('./article-service')
 
 const articlesRouter = express.Router()
 const jsonBodyParser = express.json()

@@ -1,5 +1,5 @@
 const express = require('express')
-const UserService = require('./UserService')
+const UserService = require('./user-service')
 
 const usersRouter = express.Router()
 const jsonBodyParser = express.json()

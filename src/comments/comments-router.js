@@ -1,5 +1,5 @@
 const express = require('express')
-const CommentService = require('./CommentService')
+const CommentService = require('./comment-service')
 
 const commentsRouter = express.Router()
 const jsonBodyParser = express.json()
