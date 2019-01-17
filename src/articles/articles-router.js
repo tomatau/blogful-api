@@ -63,7 +63,8 @@ articlesRouter
     if (content) newFields.content = content
     ArticleService.updateArticle(
       req.app.get('db'),
-      req.params.article_id, newFields
+      req.params.article_id,
+      newFields
     )
       .then(() => {
         res.status(204).end()

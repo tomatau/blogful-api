@@ -36,9 +36,9 @@ e.g. to seed the database named `blogful`:
 
 ```bash
 psql -U $DB_USER -d blogful -f ./seeds/seed.blogful_articles.sql
-psql -U thinkful -d $DB_NAME -f ./seeds/seed.blogful_comments.sql
+psql -U dunder-mifflin -d $DB_NAME -f ./seeds/seed.blogful_comments.sql
 psql -U $DB_USER -d $DB_NAME -f ./seeds/seed.blogful_users.sql
-psql -U thinkful-test -d blogful-test -f ./seeds/seed.blogful_tags.sql
+psql -U dunder-mifflin-test -d blogful-test -f ./seeds/seed.blogful_tags.sql
 ```
 
 **other scripts**
@@ -133,7 +133,7 @@ The expected format is:
 Inside `.env`:
 
 ```bash
-DB_URL="postgresql://thinkful@localhost/blogful"
+DB_URL="postgresql://dunder-mifflin@localhost/blogful"
 ```
 
 You should only need `DB_URL` to start the application.
@@ -148,7 +148,7 @@ There is a default value set in `./src/config.js` but it probably won't work for
 DB_NAME=blogful
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_USER=thinkful
+DB_USER=dunder-mifflin
 DB_PASS=
 ```
 

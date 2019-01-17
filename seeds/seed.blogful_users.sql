@@ -11,35 +11,35 @@ INSERT INTO blogful_user (
     'fcdab65c-d063-45d4-8277-fff9c0230a88',
     'Bodeep',
     'Deboop',
-    'b.deboop@thinkful.com',
+    'b.deboop@dunder-mifflin.com',
     'bodeepadeboop'
   ),
   (
     'f19d7725-c447-42d0-8b81-f41a16a97c34',
     'Joe',
     'Bloggs',
-    'j.bloggs@thinkful.com',
+    'j.bloggs@dunder-mifflin.com',
     'j.b'
   ),
   (
     '5b6620d4-1475-4f4a-b8dc-d1fa4c41023d',
     'Sam',
     'Smith',
-    's.smith@thinkful.com',
+    's.smith@dunder-mifflin.com',
     'smiddy'
   ),
   (
     '821a24ae-40ad-4f04-ad46-efbb5322a1bb',
     'Alex',
     'Taylor',
-    'a.tay@thinkful.com',
+    'a.tay@dunder-mifflin.com',
     'lexlor'
   ),
   (
     '2ad8f2bc-23db-4ace-aa9d-4da4844da0f8',
     'Peng',
     'Won In',
-    'wip@thinkful.com',
+    'wip@dunder-mifflin.com',
     'wippy'
   );
 
