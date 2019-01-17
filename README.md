@@ -49,69 +49,69 @@ Same as other API projects in curric
 
 ### Articles
 
-- `GET /article`
+- `GET /api/articles`
   - get all articles
-- `POST /article`
+- `POST /api/articles`
   - create an article
 
-- `GET /article/:article_id`
+- `GET /api/articles/:article_id`
   - get a specific article
-- `PATCH /article/:article_id`
+- `PATCH /api/articles/:article_id`
   - update a specific article
-- `DELETE /article/:article_id`
+- `DELETE /api/articles/:article_id`
   - delete a specific article
 
-- `GET /article/:article_id/comment`
+- `GET /api/articles/:article_id/comment`
   - get all comments for a specific article
 
-- `GET /article/:article_id/tag`
+- `GET /api/articles/:article_id/tag`
   - get all tags for a specific article
-- `POST /article/:article_id/tag`
+- `POST /api/articles/:article_id/tag`
   - add a tag to a specific article
 
-- `DELETE /article/:article_id/tag/:tag_id`
+- `DELETE /api/articles/:article_id/tag/:tag_id`
   - remove a specific tag from a specific article
 
 ### Users
 
-- `GET /user`
+- `GET /api/users`
   - get all users
-- `POST /user`
+- `POST /api/users`
   - create an user
 
-- `GET /user/:user_id`
+- `GET /api/users/:user_id`
   - get a specific user
-- `PATCH /user/:user_id`
+- `PATCH /api/users/:user_id`
   - update a specific user
-- `DELETE /user/:user_id`
+- `DELETE /api/users/:user_id`
   - delete a specific user
 
 ### Comments
 
-- ~~`GET /comment`~~
+- ~~`GET /api/comments`~~
   - ~~get all comments~~
-- `POST /comment`
+- `POST /api/comments`
   - create an comment
 
-- `GET /comment/:comment_id`
+- `GET /api/comments/:comment_id`
   - get a specific comment
-- `PATCH /comment/:comment_id`
+- `PATCH /api/comments/:comment_id`
   - update a specific comment
-- `DELETE /comment/:comment_id`
+- `DELETE /api/comments/:comment_id`
   - delete a specific comment
 
 ### Tags
 
-- `GET /tag`
+- `GET /api/tags`
   - get all tags
-- `POST /tag`
+- `POST /api/tags`
   - create an tag
 
-- `GET /tag/:tag_id`
+- `GET /api/tags/:tag_id`
   - get a specific tag
-- `PATCH /tag/:tag_id`
+- `PATCH /api/tags/:tag_id`
   - update a specific tag
-- `DELETE /tag/:tag_id`
+- `DELETE /api/tags/:tag_id`
   - delete a specific comment
 
 ## Hello
@@ -158,4 +158,4 @@ These aren't required to start the app, they're only needed for running migratio
 
 - Add API_TOKEN support
 - XSS when serving articles and comments content
-- GET /articles should support: pagination, title search, sorting
+- GET /api/articles should support: pagination, title search, sorting
