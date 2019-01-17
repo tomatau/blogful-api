@@ -2,7 +2,7 @@
 const CommentService = {
   getById(db, comment_id) {
     return db
-      .from('blogful_comment')
+      .from('blogful_comments')
       .where({
         id: comment_id
       })
@@ -10,7 +10,7 @@ const CommentService = {
   },
 
   hasComment(db, id) {
-    return db('blogful_comment')
+    return db('blogful_comments')
       .select('id')
       .where({ id })
       .first()
@@ -20,19 +20,19 @@ const CommentService = {
   insertComment(db, newComment) {
     return db
       .insert(newComment)
-      .into('blogful_comment')
+      .into('blogful_comments')
       .returning('*')
       .then(([comment]) => comment)
   },
 
   updateComment(db, id, newCommentFields) {
-    return db('blogful_comment')
+    return db('blogful_comments')
       .where({ id })
       .update(newCommentFields)
   },
 
   deleteComment(db, id) {
-    return db('blogful_comment')
+    return db('blogful_comments')
       .where({ id })
       .delete()
   },

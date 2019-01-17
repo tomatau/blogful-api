@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS blogful_comment;
+DROP TABLE IF EXISTS blogful_comments;

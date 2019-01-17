@@ -1,4 +1,4 @@
-INSERT INTO blogful_article (id, title, content) VALUES
+INSERT INTO blogful_articles (id, title, content) VALUES
 ('7c698932-fab8-4054-bde9-bf6e5a9e6db5', 'First post!', 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Natus consequuntur deserunt commodi, nobis qui inventore corrupti iusto aliquid debitis unde non. Adipisci, pariatur. Molestiae, libero esse hic adipisci autem neque?'),
 ('9e2cb374-cfb0-4237-8c25-faffeff62543', 'Second post!', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum, exercitationem cupiditate dignissimos est perspiciatis, nobis commodi alias saepe atque facilis labore sequi deleniti. Sint, adipisci facere! Velit temporibus debitis rerum.'),
 ('78e4bbe9-d8a7-4542-9cfc-12537328cd9d', 'Third post!', 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Possimus, voluptate? Necessitatibus, reiciendis? Cupiditate totam laborum esse animi ratione ipsa dignissimos laboriosam eos similique cumque. Est nostrum esse porro id quaerat.'),

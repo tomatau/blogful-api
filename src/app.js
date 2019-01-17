@@ -15,10 +15,10 @@ app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common'))
 app.use(cors())
 app.use(helmet())
 
-app.use('/article', articlesRouter)
-app.use('/comment', commentsRouter)
-app.use('/user', usersRouter)
-app.use('/tag', tagsRouter)
+app.use('/api/articles', articlesRouter)
+app.use('/api/comments', commentsRouter)
+app.use('/api/users', usersRouter)
+app.use('/api/tags', tagsRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello, world!')

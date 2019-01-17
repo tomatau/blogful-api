@@ -1,4 +1,4 @@
-INSERT INTO blogful_comment (id, text, article_id) VALUES
+INSERT INTO blogful_comments (id, text, article_id) VALUES
 ('72e5e050-d3e6-4938-814b-f8227c5df582', 'Wow', '7c698932-fab8-4054-bde9-bf6e5a9e6db5'),
 ('9a20aa5e-142e-11e9-ab14-d663bd873d93', 'Cool!', '7c698932-fab8-4054-bde9-bf6e5a9e6db5'),
 ('b8e8bf7a-ab2e-4937-a47f-eb18de5f46c7', 'Amazing!', '7c698932-fab8-4054-bde9-bf6e5a9e6db5'),

@@ -1,6 +1,6 @@
 BEGIN;
 
-INSERT INTO blogful_user (
+INSERT INTO blogful_users (
   id,
   first_name,
   last_name,
@@ -43,7 +43,7 @@ INSERT INTO blogful_user (
     'wippy'
   );
 
-INSERT INTO blogful_article (
+INSERT INTO blogful_articles (
   id,
   title,
   content,
@@ -69,7 +69,7 @@ INSERT INTO blogful_article (
   );
 
 
-INSERT INTO blogful_comment (
+INSERT INTO blogful_comments (
   id,
   text,
   article_id,

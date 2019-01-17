@@ -1,6 +1,6 @@
 BEGIN;
 
-INSERT INTO blogful_tag (
+INSERT INTO blogful_tags (
   id,
   text
 ) VALUES
@@ -25,7 +25,7 @@ INSERT INTO blogful_tag (
     'hedgehog'
   );
 
-INSERT INTO blogful_article_tag (
+INSERT INTO blogful_articles_tags (
   article_id,
   tag_id
 ) VALUES

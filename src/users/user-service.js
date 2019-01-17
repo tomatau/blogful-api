@@ -2,13 +2,13 @@
 const UserService = {
   getAll(db) {
     return db
-      .from('blogful_user')
+      .from('blogful_users')
       .select('*')
   },
 
   getById(db, user_id) {
     return db
-      .from('blogful_user')
+      .from('blogful_users')
       .where({
         id: user_id
       })
@@ -16,7 +16,7 @@ const UserService = {
   },
 
   hasUser(db, id) {
-    return db('blogful_user')
+    return db('blogful_users')
       .select('id')
       .where({ id })
       .first()
@@ -26,25 +26,25 @@ const UserService = {
   insertUser(db, newUser) {
     return db
       .insert(newUser)
-      .into('blogful_user')
+      .into('blogful_users')
       .returning('*')
       .then(([user]) => user)
   },
 
   updateUser(db, id, newUserFields) {
-    return db('blogful_user')
+    return db('blogful_users')
       .where({ id })
       .update(newUserFields)
   },
 
   deleteUser(db, id) {
-    return db('blogful_user')
+    return db('blogful_users')
       .where({ id })
       .delete()
   },
 
   hasUserWithEmail(db, email) {
-    return db('blogful_user')
+    return db('blogful_users')
       .where({ email })
       .first()
       .then(user => !!user)
