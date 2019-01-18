@@ -1,4 +1,5 @@
 const express = require('express')
+const path = require('path')
 const CommentService = require('./comment-service')
 
 const commentsRouter = express.Router()
@@ -23,7 +24,10 @@ commentsRouter
         newComment
       )
         .then(comment => {
-          res.status(201).json(comment)
+          res
+            .status(201)
+            .location(path.join(req.originalUrl, comment.id))
+            .json(comment)
         })
         .catch(next)
     })
@@ -68,7 +72,8 @@ commentsRouter
 
       CommentService.updateComment(
         req.app.get('db'),
-        req.params.comment_id, newFields
+        req.params.comment_id,
+        newFields
       )
         .then(() => {
           res.status(204).end()

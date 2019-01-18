@@ -1,4 +1,5 @@
 const express = require('express')
+const path = require('path')
 const UserService = require('./user-service')
 
 const usersRouter = express.Router()
@@ -41,7 +42,10 @@ usersRouter
           newUser
         )
           .then(user => {
-            res.status(201).json(user)
+            res
+              .status(201)
+              .location(path.join(req.originalUrl, user.id))
+              .json(user)
           })
       })
       .catch(next)
@@ -110,7 +114,8 @@ usersRouter
 
           return UserService.updateUser(
             req.app.get('db'),
-            req.params.user_id, newFields
+            req.params.user_id,
+            newFields
           )
             .then(() => {
               res.status(204).end()

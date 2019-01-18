@@ -1,4 +1,5 @@
 const express = require('express')
+const path = require('path')
 const TagService = require('./tag-service')
 
 const tagsRouter = express.Router()
@@ -33,7 +34,10 @@ tagsRouter
       newTag
     )
       .then(tag => {
-        res.status(201).json(tag)
+        res
+          .status(201)
+          .location(path.join(req.originalUrl, tag.id))
+          .json(tag)
       })
       .catch(next)
   })
@@ -84,7 +88,8 @@ tagsRouter
 
     TagService.updateTag(
       req.app.get('db'),
-      req.params.tag_id, newFields
+      req.params.tag_id,
+      newFields
     )
       .then(() => {
         res.status(204).end()
