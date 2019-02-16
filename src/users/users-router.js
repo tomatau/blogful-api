@@ -1,138 +1,164 @@
 const express = require('express')
 const path = require('path')
-const UserService = require('./user-service')
+const xss = require('xss')
+const AuthService = require('../auth/auth-service')
+const { requireAuth, requireAdmin } = require('../middleware/jwt-auth')
+const UsersService = require('./users-service')
 
 const usersRouter = express.Router()
 const jsonBodyParser = express.json()
 
-/* verbs for general users */
+const serializeUser = user => ({
+  id: user.id,
+  full_name: xss(user.full_name),
+  user_name: xss(user.user_name),
+  nick_name: xss(user.nick_name),
+  date_created: user.date_created,
+})
+
 usersRouter
   .route('/')
-  .get((req, res, next) => {
-    UserService.getAll(req.app.get('db'))
+  .get(requireAuth, requireAdmin, (req, res, next) => {
+    UsersService.getAll(req.app.get('db'))
       .then(users => {
-        res.json(users)
+        res.json(users.map(serializeUser))
       })
       .catch(next)
   })
-  // add a user, requires { article_id }
   .post(jsonBodyParser, (req, res, next) => {
-    const { first_name, last_name, email, screen_name } = req.body
-    const newUser = { first_name, last_name, email, screen_name }
+    const { full_name, user_name, nick_name, password } = req.body
 
-    const requiredFields = ['email', 'screen_name']
-    for (const field of requiredFields)
-      if (newUser[field] == null)
+    for (const field of ['full_name', 'user_name', 'password'])
+      if (!req.body[field] || req.body[field] == null) {
         return res.status(400).json({
-          error: { message: `Missing '${field}' in request body` }
+          error: `Missing '${field}' in request body`
         })
+      }
 
-    UserService.hasUserWithEmail(
+    const passwordError = UsersService.validatePassword(password)
+
+    if (passwordError) {
+      return res.status(400).json({
+        error: passwordError
+      })
+    }
+
+    UsersService.hasUserWithUserName(
       req.app.get('db'),
-      newUser.email
+      user_name
     )
-      .then(hasUserWithEmail => {
-        if (hasUserWithEmail)
+      .then(hasUserWithUserName => {
+        if (hasUserWithUserName)
           return res.status(400).json({
-            error: { message: `Email already taken` }
+            error: `User name already taken`
           })
 
-        return UserService.insertUser(
+        return AuthService.hashPassword(password)
+      })
+      .then(hashedPassword => {
+        const newUser = {
+          full_name,
+          user_name,
+          nick_name,
+          date_created: 'now()',
+          password: hashedPassword
+        }
+
+        return UsersService.insertUser(
           req.app.get('db'),
           newUser
         )
           .then(user => {
             res
               .status(201)
-              .location(path.join(req.originalUrl, user.id))
-              .json(user)
+              .location(path.posix.join(req.originalUrl, `/${user.id}`))
+              .json(serializeUser(user))
           })
       })
       .catch(next)
   })
 
-/* verbs for soecufuc user */
 usersRouter
   .route('/:user_id')
-    .all((req, res, next) => {
-      UserService.hasUser(
-        req.app.get('db'),
-        req.params.user_id
-      )
-        .then(hasUser => {
-          if (!hasUser)
-            return res.status(404).json({
-              error: { message: `User doesn't exist` }
-            })
-          next()
-          return null
-        })
-        .catch(next)
-    })
-    .get((req, res, next) => {
-      UserService.getById(
-        req.app.get('db'),
-        req.params.user_id
-      )
-        .then(user => {
-          res.json(user)
-        })
-        .catch(next)
-    })
-    // update user information, without users
-    .patch(jsonBodyParser, (req, res, next) => {
-      const { first_name, last_name, email, screen_name } = req.body
-      if (
-        first_name == null
-        && last_name == null
-        && email == null
-        && screen_name == null
-      )
-        return res.status(400).json({
-          error: {
-            message: `Request body must contain either 'first_name', 'last_name', 'email' or 'screen_name'`
-          }
-        })
+  .all(requireAuth)
+  .all((req, res, next) => {
+    UsersService.getById(
+      req.app.get('db'),
+      req.params.user_id
+    )
+      .then(user => {
+        if (!user)
+          return res.status(404).json({
+            error: `User doesn't exist`
+          })
+        res.user = user
+        next()
+        return null
+      })
+      .catch(next)
+  })
+  // TODO: permissions by role
+  .get((req, res) => {
+    if (res.user.id !== req.user.id)
+      return res.status(400).json({
+        error: `Comment can only be read by user`
+      })
 
-      const newFields = {
-        date_modified: 'now()'
-      }
-      if (first_name) newFields.first_name = first_name
-      if (last_name) newFields.last_name = last_name
-      if (email) newFields.email = email
-      if (screen_name) newFields.screen_name = screen_name
+    res.json(serializeUser(res.user))
+  })
+  // TODO: permissions by role
+  .patch(jsonBodyParser, (req, res, next) => {
+    // don't let users change username
+    const { full_name, nick_name, password } = req.body
+    const userToUpdate = { full_name, nick_name, password }
 
-      UserService.hasUserWithEmail(
-        req.app.get('db'),
-        newFields.email
-      )
-        .then(hasUserWithEmail => {
-          if (hasUserWithEmail)
-            return res.status(400).json({
-              error: { message: `Email already taken` }
-            })
+    const numberOfValues = Object.values(userToUpdate).filter(Boolean).length
 
-          return UserService.updateUser(
-            req.app.get('db'),
-            req.params.user_id,
-            newFields
-          )
-            .then(() => {
-              res.status(204).end()
-            })
-        })
-        .catch(next)
-    })
-    // remove an user, users should cascade
-    .delete((req, res, next) => {
-      UserService.deleteUser(
-        req.app.get('db'),
-        req.params.user_id
-      )
-        .then(() => {
-          res.status(204).end()
-        })
-        .catch(next)
-    })
+    if (numberOfValues === 0)
+      return res.status(400).json({
+        error: `Request body must contain either 'full_name', 'nickname', 'password'`
+      })
+
+    if (res.user.id !== req.user.id)
+      return res.status(400).json({
+        error: `User can only be updated by self`
+      })
+
+    const passwordError = UsersService.validatePassword(userToUpdate.password)
+
+    if (passwordError) {
+      return res.status(400).json({
+        error: passwordError
+      })
+    }
+
+    userToUpdate.date_modified = 'now()'
+
+    return UsersService.updateUser(
+      req.app.get('db'),
+      req.params.user_id,
+      userToUpdate
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
+  // TODO: permissions by role
+  .delete((req, res, next) => {
+    if (res.user.id !== req.user.id)
+      return res.status(400).json({
+        error: `User can only be deleted by owner`
+      })
+
+    UsersService.deleteUser(
+      req.app.get('db'),
+      req.params.user_id
+    )
+      .then(numRowsAffected => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
 
 module.exports = usersRouter

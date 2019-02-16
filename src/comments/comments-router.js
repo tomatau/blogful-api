@@ -1,96 +1,117 @@
 const express = require('express')
 const path = require('path')
-const CommentService = require('./comment-service')
+const { requireAuth } = require('../middleware/jwt-auth')
+const CommentsService = require('./comments-service')
 
 const commentsRouter = express.Router()
 const jsonBodyParser = express.json()
 
-/* verbs for general comments */
+const serializeComment = comment => ({
+  id: comment.id,
+  article_id: comment.article_id,
+  user_id: comment.user_id,
+  text: xss(comment.text),
+})
+
 commentsRouter
   .route('/')
-    // add a comment, requires { article_id }
-    .post(jsonBodyParser, (req, res, next) => {
-      const { article_id, text, user_id } = req.body
-      const newComment = { article_id, text, user_id }
+  .all(requireAuth)
+  .post(jsonBodyParser, (req, res, next) => {
+    const { user } = req
+    const { article_id, text } = req.body
+    const newComment = { article_id, text }
 
-      for (const [key, value] of Object.entries(newComment))
-        if (value == null)
-          return res.status(400).json({
-            error: { message: `Missing '${key}' in request body` }
-          })
-
-      CommentService.insertComment(
-        req.app.get('db'),
-        newComment
-      )
-        .then(comment => {
-          res
-            .status(201)
-            .location(path.join(req.originalUrl, comment.id))
-            .json(comment)
+    for (const [key, value] of Object.entries(newComment))
+      if (value == null)
+        return res.status(400).json({
+          error: `Missing '${key}' in request body`
         })
-        .catch(next)
-    })
 
-/* verbs for soecufuc comment */
+    newComment.user_id = user.id
+
+    CommentsService.insertComment(
+      req.app.get('db'),
+      newComment
+    )
+      .then(comment => {
+        res
+          .status(201)
+          .location(path.posix.join(req.originalUrl, comment.id))
+          .json({
+            ...comment,
+            user: {
+              id: user.id,
+              user_name: user.user_name,
+              full_name: user.full_name,
+              nick_name: user.nick_name,
+              date_created: user.date_created,
+              date_modified: user.date_modified,
+            }
+          })
+      })
+      .catch(next)
+  })
+
 commentsRouter
   .route('/:comment_id')
-    .all((req, res, next) => {
-      CommentService.hasComment(
-        req.app.get('db'),
-        req.params.comment_id
-      )
-        .then(hasComment => {
-          if (!hasComment)
-            return res.status(404).json({ error: { message: `Comment doesn't exist` } })
-          next()
-        })
-        .catch(next)
-    })
+  .all(requireAuth)
+  .all((req, res, next) => {
+    CommentsService.getById(
+      req.app.get('db'),
+      req.params.comment_id
+    )
+      .then(comment => {
+        if (!comment)
+          return res.status(404).json({
+            error: `Comment doesn't exist`
+          })
+        res.comment = comment
+        next()
+      })
+      .catch(next)
+  })
+  .get((req, res) => {
+    res.json(serializeComment(res.comment))
+  })
+  .patch(jsonBodyParser, (req, res, next) => {
+    const { text } = req.body
+    if (text == null)
+      return res.status(400).json({
+        error: `Request body must contain'text'`
+      })
 
-    .get((req, res, next) => {
-      CommentService.getById(
-        req.app.get('db'),
-        req.params.comment_id
-      )
-        .then(comment => {
-          res.json(comment)
-        })
-        .catch(next)
-    })
+    if (res.comment.user_id !== req.user.id)
+      return res.status(400).json({
+        error: `Comment can only be updated by owner`
+      })
 
-    // update comment information, without comments
-    .patch(jsonBodyParser, (req, res, next) => {
-      const { text } = req.body
-      if (text == null)
-        return res.status(400).json({
-          error: { message: `Request body must contain'text'` }
-        })
+    const newFields = {}
+    if (text) newFields.text = text
 
-      const newFields = {}
-      if (text) newFields.text = text
+    CommentsService.updateComment(
+      req.app.get('db'),
+      req.params.comment_id,
+      newFields
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
+  .delete((req, res, next) => {
+    if (res.comment.user_id !== req.user.id)
+      return res.status(400).json({
+        error: `Comment can only be updated by owner`
+      })
 
-      CommentService.updateComment(
-        req.app.get('db'),
-        req.params.comment_id,
-        newFields
-      )
-        .then(() => {
-          res.status(204).end()
-        })
-        .catch(next)
-    })
-
-    // remove an comment, comments should cascade
-    .delete((req, res, next) => {
-      CommentService.deleteComment(
-        req.app.get('db'),
-        req.params.comment_id
-      )
-        .then(() => {
-          res.status(204).end()
-        })
-        .catch(next)
-    })
+    CommentsService.deleteComment(
+      req.app.get('db'),
+      req.params.comment_id
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
 
 module.exports = commentsRouter

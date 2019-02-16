@@ -1,134 +1,150 @@
 const express = require('express')
 const path = require('path')
-const ArticleService = require('./article-service')
+const xss = require('xss')
+const { requireAuth } = require('../middleware/jwt-auth')
+const ArticlesService = require('./articles-service')
 
 const articlesRouter = express.Router()
 const jsonBodyParser = express.json()
 
-/* verbs for generic articles */
-articlesRouter
-  .route('/')
+const serializeArticle = article => ({
+  id: article.id,
+  style: article.style,
+  title: xss(article.title),
+  content: xss(article.content),
+  date_published: article.date_published,
+  author: article.author || {},
+  tags: article.tags || [],
+  number_of_comments: Number(article.number_of_comments) || 0,
+})
+
+articlesRouter.route('/')
   .get((req, res, next) => {
-    ArticleService.getAll(req.app.get('db'))
+    ArticlesService.getAllAdv(req.app.get('db'))
       .then(articles => {
-        res.json(articles)
+        res.json(articles.map(serializeArticle))
       })
       .catch(next)
   })
-
-  // add a new article without comments
-  .post(jsonBodyParser, (req, res, next) => {
-    const { title, content, author_id } = req.body
-    const newArticle = { title, content, author_id }
+  .post(requireAuth, jsonBodyParser, (req, res, next) => {
+    const { title, content, style } = req.body
+    const newArticle = { title, content, style }
 
     for (const [key, value] of Object.entries(newArticle))
       if (value == null)
         return res.status(400).json({
-          error: { message: `Missing '${key}' in request body` }
+          error: `Missing '${key}' in request body`
         })
 
-    ArticleService.insertArticle(
+    newArticle.author_id = req.user.id
+
+    ArticlesService.insertArticle(
       req.app.get('db'),
       newArticle
     )
       .then(article => {
         res
           .status(201)
-          .location(path.join(req.originalUrl, article.id))
-          .json(article)
-      })
-  })
-
-/* verbs for specific articles */
-articlesRouter
-  .route('/:article_id/')
-  .all(checkArticleExists)
-
-  .get((req, res, next) => {
-    ArticleService.getByIdAdv(
-      req.app.get('db'),
-      req.params.article_id
-    )
-      .then(articles => {
-        res.json(articles)
+          .location(path.posix.join(req.originalUrl, article.id))
+          .json(serializeArticle({
+            ...article,
+            author: {
+              id: req.user.id,
+              user_name: req.user.user_name,
+              full_name: req.user.full_name,
+              nick_name: req.user.nick_name,
+              date_created: req.user.date_created,
+              date_modified: req.user.date_modified
+            }
+          }))
       })
       .catch(next)
   })
 
-  // update article information, without comments
+articlesRouter.route('/:article_id/')
+  .all(requireAuth)
+  .all(checkArticleExists)
+  .get((req, res) => {
+    res.json(serializeArticle(res.article))
+  })
+  // TODO: permissions by role
   .patch(jsonBodyParser, (req, res, next) => {
-    const { title, content } = req.body
-    if (title == null && content == null)
+    const { title, content, style } = req.body
+    const articleToUpdate = { title, content, style }
+
+    const presentValuesArr = Object.values(articleToUpdate).filter(Boolean)
+
+    if (presentValuesArr.length === 0)
       return res.status(400).json({
-        error: { message: `Request body must content either 'title' or 'content'` }
+        error: `Request body must content either 'title', 'style' or 'content'`
       })
-    const newFields = {}
-    if (title) newFields.title = title
-    if (content) newFields.content = content
-    ArticleService.updateArticle(
+
+    if (res.article.author.id !== req.user.id)
+      return res.status(400).json({
+        error: `Article can only be updated by author`
+      })
+
+    ArticlesService.updateArticle(
       req.app.get('db'),
       req.params.article_id,
-      newFields
+      articleToUpdate
     )
-      .then(() => {
+      .then(numRowsAffected => {
         res.status(204).end()
       })
       .catch(next)
   })
-
-  // remove an article, comments should cascade
+  // TODO: permissions by role
   .delete((req, res, next) => {
-    ArticleService.deleteArticle(
+    if (res.article.author.id !== req.user.id)
+      return res.status(400).json({
+        error: `Article can only be deleted by author`
+      })
+
+    ArticlesService.deleteArticle(
       req.app.get('db'),
       req.params.article_id
     )
-      .then(() => {
+      .then(numRowsAffected => {
         res.status(204).end()
       })
       .catch(next)
   })
 
-/* verbs for specific article's comments (probably don't need this) */
-articlesRouter
-  .route('/:article_id/comment/')
+articlesRouter.route('/:article_id/comments/')
+  .all(requireAuth)
   .all(checkArticleExists)
-
   .get((req, res, next) => {
-    ArticleService.getCommentsForArticle(
+    ArticlesService.getCommentsForArticle(
       req.app.get('db'),
       req.params.article_id
-    )
-      .then(comments => {
-        res.json(comments)
-      })
-      .catch(next)
+    ).then(comments => {
+      res.json(comments)
+    })
+    .catch(next)
   })
 
-articlesRouter
-  .route('/:article_id/tag/')
+articlesRouter.route('/:article_id/tags/')
+  .all(requireAuth)
   .all(checkArticleExists)
-
-  .get((req, res, next) => {
-    ArticleService.getTagsForArticle(
-      req.app.get('db'),
-      req.params.article_id
-    )
-      .then(tags => {
-        res.json(tags)
-      })
-      .catch(next)
+  .get((req, res) => {
+    res.json(res.article.tags)
   })
-
-  // add a tag to an article
+  // TODO: permissions by role
   .post(jsonBodyParser, (req, res, next) => {
     const { tag_id } = req.body
 
     if (tag_id == null)
       return res.status(400).json({
-        error: { message: `Missing 'tag_id' in request body` }
+        error: `Missing 'tag_id' in request body`
       })
 
-    ArticleService.hasArticleTag(
+    if (res.article.author.id !== req.user.id)
+      return res.status(400).json({
+        error: `Article tags can only be updated by author`
+      })
+
+    ArticlesService.hasArticleTag(
       req.app.get('db'),
       req.params.article_id,
       tag_id,
@@ -136,10 +152,10 @@ articlesRouter
       .then(hasArticleTag => {
         if (hasArticleTag)
           return res.status(400).json({
-            error: { message: `Article already has tag` }
+            error: `Article already has tag`
           })
 
-        return ArticleService.addArticleTag(
+        return ArticlesService.addArticleTag(
           req.app.get('db'),
           req.params.article_id,
           tag_id,
@@ -151,12 +167,11 @@ articlesRouter
       .catch(next)
   })
 
-
-articlesRouter
-  .route('/:article_id/tag/:tag_id')
+articlesRouter.route('/:article_id/tags/:tag_id')
+  .all(requireAuth)
   .all(checkArticleExists)
   .all((req, res, next) => {
-    ArticleService.hasArticleTag(
+    ArticlesService.hasArticleTag(
       req.app.get('db'),
       req.params.article_id,
       req.params.tag_id,
@@ -164,16 +179,20 @@ articlesRouter
       .then(hasArticleTag => {
         if (!hasArticleTag)
           return res.status(404).json({
-            error: { message: `Article doesn't have tag!` }
+            error: `Article doesn't have tag!`
           })
         next()
       })
       .catch(next)
   })
-
-  // remove tag from article
+  // TODO: permissions by role
   .delete((req, res, next) => {
-    ArticleService.deleteArticleTag(
+    if (res.article.author.id !== req.user.id)
+      return res.status(400).json({
+        error: `Article tags can only be removed by author`
+      })
+
+    ArticlesService.deleteArticleTag(
       req.app.get('db'),
       req.params.article_id,
       req.params.tag_id,
@@ -186,16 +205,17 @@ articlesRouter
 
 async function checkArticleExists(req, res, next) {
   try {
-    const hasArticle = await ArticleService.hasArticle(
+    const article = await ArticlesService.getByIdAdv(
       req.app.get('db'),
       req.params.article_id
     )
 
-    if (!hasArticle)
+    if (!article)
       return res.status(404).json({
-        error: { message: `Article doesn't exist` }
+        error: `Article doesn't exist`
       })
 
+    res.article = article
     next()
   } catch (error) {
     next(error)

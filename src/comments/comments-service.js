@@ -1,20 +1,10 @@
 
-const CommentService = {
-  getById(db, comment_id) {
+const CommentsService = {
+  getById(db, id) {
     return db
       .from('blogful_comments')
-      .where({
-        id: comment_id
-      })
-      .first()
-  },
-
-  hasComment(db, id) {
-    return db('blogful_comments')
-      .select('id')
       .where({ id })
       .first()
-      .then(comment => !!comment)
   },
 
   insertComment(db, newComment) {
@@ -36,6 +26,14 @@ const CommentService = {
       .where({ id })
       .delete()
   },
+
+  /* hasComment(db, id) {
+    return db('blogful_comments')
+      .select('id')
+      .where({ id })
+      .first()
+      .then(comment => !!comment)
+  }, */
 }
 
-module.exports = CommentService
+module.exports = CommentsService
